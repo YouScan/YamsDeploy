@@ -116,11 +116,13 @@
                     if (app.DeploymentIds == null)
                     {
                         app.DeploymentIds = new List<string> { deploymentId };
+                        app.TargetClusters = new List<string> { deploymentId };
                         updated = true;
                     }
                     else if (!app.DeploymentIds.Contains(deploymentId))
                     {
                         app.DeploymentIds.Add(deploymentId);
+                        app.TargetClusters.Add(deploymentId);
                         updated = true;
                     }
 
@@ -135,6 +137,7 @@
                         new ApplicationDeploymentConfig
                         {
                             DeploymentIds = new List<string> { deploymentId },
+                            TargetClusters = new List<string> { deploymentId },
                             Id = application.Id,
                             Version = updatedVersionString
                         });
