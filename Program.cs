@@ -34,6 +34,9 @@
 
         [ArgDescription("Whether or not to read application mapping from console input. If true, Id, SourceDirectory, & Version are ignored."), ArgDefaultValue(false)]
         public bool StdIn { get; set; }
+
+        [ArgDescription("Force deployment even if application is unchanged, i.e. redeploy existing version"), ArgDefaultValue(false)]
+        public bool ForceDeploy { get; set; }
     }
 
     public class Program
@@ -47,7 +50,7 @@
             {
                 var parsedArgs = Args.Parse<Arguments>(args);
                 var deploymentMapping = GetApplicationMapping(parsedArgs);
-                Run(deploymentMapping, parsedArgs.DeploymentId, parsedArgs.ConnectionString).Wait();
+                Run(deploymentMapping, parsedArgs.ForceDeploy, parsedArgs.DeploymentId, parsedArgs.ConnectionString).Wait();
             }
             catch (Exception exception)
             {
@@ -55,7 +58,7 @@
             }
         }
 
-        private static async Task Run(IEnumerable<ApplicationMapping> applications, string deploymentId, string storageConnectionString)
+        private static async Task Run(IEnumerable<ApplicationMapping> applications, bool forceDeploy, string deploymentId, string storageConnectionString)
         {
             var stopwatch = Stopwatch.StartNew();
             Console.WriteLine($"Environment: {deploymentId}");
@@ -72,7 +75,7 @@
                 application.Version = application.Version ?? IncrementVersion(previousVersion) ?? new Version(1, 0, 0);
 
                 // Check if the application needs to be uploaded, and upload it if so.
-                if (previousVersion != null
+                if (previousVersion != null && !forceDeploy
                     && await
                        manager.ContentsMatch(application.Id, application.SourceDirectory, previousVersion, cancellationToken))
                 {
